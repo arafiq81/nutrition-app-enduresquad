@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Your Profile{% endblock %}
+
+{% block content %}
+<h2>Complete Your Athlete Profile</h2>
+
+<p>Please provide your information to calculate personalized nutrition targets.</p>
+
+<form method="POST" action="{{ url_for('main.setup_profile') }}">
+    <h3>Basic Information</h3>
+    
+    <div class="form-group">
+        <label for="age">Age *</label>
+        <input type="number" id="age" name="age" min="15" max="100" required value="{{ user.age or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="sex">Sex *</label>
+        <select id="sex" name="sex" required>
+            <option value="">Select...</option>
+            <option value="male" {% if user.sex == 'male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if user.sex == 'female' %}selected{% endif %}>Female</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="weight">Weight (kg) *</label>
+        <input type="number" id="weight" name="weight" step="0.1" min="40" max="150" required value="{{ user.weight_kg or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="height">Height (cm) *</label>
+        <input type="number" id="height" name="height" step="0.1" min="140" max="220" required value="{{ user.height_cm or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="body_fat">Body Fat % (optional)</label>
+        <input type="number" id="body_fat" name="body_fat" step="0.1" min="5" max="50" value="{{ user.body_fat_percentage or '' }}">
+        <small style="color: #666;">If provided, we'll use the more accurate Cunningham equation</small>
+    </div>
+
+    <h3>Training Profile</h3>
+
+    <div class="form-group">
+        <label for="activity_level">Daily Activity Level *</label>
+        <select id="activity_level" name="activity_level" required>
+            <option value="sedentary" {% if user.activity_level == 'sedentary' %}selected{% endif %}>Sedentary (desk job)</option>
+            <option value="light" {% if user.activity_level == 'light' %}selected{% endif %}>Light (some walking)</option>
+            <option value="moderate" {% if user.activity_level == 'moderate' %}selected{% endif %}>Moderate (active job)</option>
+            <option value="very_active" {% if user.activity_level == 'very_active' %}selected{% endif %}>Very Active (physical job)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="training_phase">Current Training Phase *</label>
+        <select id="training_phase" name="training_phase" required>
+            <option value="base" {% if user.training_phase == 'base' %}selected{% endif %}>Base Building</option>
+            <option value="build" {% if user.training_phase == 'build' %}selected{% endif %}>Build Phase</option>
+            <option value="peak" {% if user.training_phase == 'peak' %}selected{% endif %}>Peak/Taper</option>
+            <option value="race" {% if user.training_phase == 'race' %}selected{% endif %}>Race Week</option>
+            <option value="recovery" {% if user.training_phase == 'recovery' %}selected{% endif %}>Recovery/Off-season</option>
+        </select>
+    </div>
+
+    <h3>Heart Rate Zones (Optional)</h3>
+    <p style="color: #666; font-size: 0.9em;">These help calculate training energy more accurately</p>
+
+    <div class="form-group">
+        <label for="hr_max">Maximum Heart Rate</label>
+        <input type="number" id="hr_max" name="hr_max" min="120" max="220" value="{{ user.hr_max or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="hr_zone1">Zone 1 Max (bpm)</label>
+        <input type="number" id="hr_zone1" name="hr_zone1" min="100" max="200" value="{{ user.hr_zone1_max or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="hr_zone2">Zone 2 Max (bpm)</label>
+        <input type="number" id="hr_zone2" name="hr_zone2" min="100" max="200" value="{{ user.hr_zone2_max or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="hr_zone3">Zone 3 Max (bpm)</label>
+        <input type="number" id="hr_zone3" name="hr_zone3" min="100" max="200" value="{{ user.hr_zone3_max or '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="hr_zone4">Zone 4 Max (bpm)</label>
+        <input type="number" id="hr_zone4" name="hr_zone4" min="100" max="200" value="{{ user.hr_zone4_max or '' }}">
+    </div>
+
+    <button type="submit" class="btn" style="margin-top: 30px;">Complete Profile & Start Tracking</button>
+</form>
+{% endblock %}

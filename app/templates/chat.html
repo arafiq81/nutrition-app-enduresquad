@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}AI Nutrition Coach{% endblock %}
+
+{% block content %}
+<h2>💬 AI Nutrition Coach</h2>
+
+<div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <strong>Daily Message Limit:</strong> 
+    {% if can_send %}
+        You have <strong>{{ messages_remaining }}</strong> message(s) remaining today.
+    {% else %}
+        <span style="color: #e74c3c;">You've reached your daily limit of 3 messages. Limit resets at midnight.</span>
+    {% endif %}
+</div>
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; max-height: 500px; overflow-y: auto;">
+    {% if recent_messages %}
+        {% for msg in recent_messages %}
+            <div style="margin-bottom: 20px;">
+                <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 5px;">
+                    <strong>You:</strong> {{ msg.user_message }}
+                    <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                        {{ msg.created_at.strftime('%b %d, %I:%M %p') }}
+                    </div>
+                </div>
+                <div style="background: white; padding: 10px; border-radius: 5px; border-left: 3px solid #9b59b6;">
+                    <strong>Coach:</strong> {{ msg.bot_response }}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: #666; text-align: center;">No messages yet. Ask your first question!</p>
+    {% endif %}
+</div>
+
+{% if can_send %}
+<form method="POST" action="{{ url_for('main.chat') }}">
+    <div class="form-group">
+        <label for="message">Ask Your Nutrition Coach:</label>
+        <textarea id="message" 
+                  name="message" 
+                  rows="3" 
+                  required 
+                  placeholder="e.g., What should I eat before my morning swim? Should I increase carbs on rest days?"
+                  style="width: 100%;"></textarea>
+        <small style="color: #666;">
+            Examples: "What should I eat now?", "How can I hit my protein target?", "Pre-workout meal ideas?"
+        </small>
+    </div>
+    
+    <button type="submit" class="btn">Send Message ({{ messages_remaining }} remaining)</button>
+</form>
+{% else %}
+<div style="background: #f8d7da; padding: 15px; border-radius: 5px; color: #721c24;">
+    You've used all 3 messages for today. Your limit will reset at midnight.
+</div>
+{% endif %}
+
+<p style="margin-top: 30px;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Dashboard</a>
+</p>
+
+<div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 5px; font-size: 0.9em;">
+    <strong>💡 Tips for better responses:</strong>
+    <ul style="margin: 10px 0 0 20px;">
+        <li>Be specific about timing (before/after workout, time of day)</li>
+        <li>Mention food preferences or restrictions</li>
+        <li>Ask about specific meals or situations</li>
+        <li>Reference your training (the coach knows your schedule)</li>
+    </ul>
+</div>
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Training History{% endblock %}
+
+{% block content %}
+<h2>Training History</h2>
+
+{% if sessions_by_date %}
+    {% for date, sessions in sessions_by_date.items() %}
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>{{ date.strftime('%A, %B %d, %Y') }}</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Sport</th>
+                        <th>Type</th>
+                        <th>Duration</th>
+                        <th>Zone Distribution</th>
+                        <th>Energy</th>
+                        <th>Load</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                    <tr>
+                        <td>{% if session.start_time %}{{ session.start_time.strftime('%H:%M') }}{% else %}-{% endif %}</td>
+                        <td>{{ session.sport|title }}</td>
+                        <td>{{ session.session_type|title }}</td>
+                        <td>{{ session.duration_minutes }} min</td>
+                        <td style="font-size: 0.85em;">
+                            {% if session.zone1_percent > 0 %}Z1:{{ "%.0f"|format(session.zone1_percent) }}% {% endif %}
+                            {% if session.zone2_percent > 0 %}Z2:{{ "%.0f"|format(session.zone2_percent) }}% {% endif %}
+                            {% if session.zone3_percent > 0 %}Z3:{{ "%.0f"|format(session.zone3_percent) }}% {% endif %}
+                            {% if session.zone4_percent > 0 %}Z4:{{ "%.0f"|format(session.zone4_percent) }}% {% endif %}
+                            {% if session.zone5_percent > 0 %}Z5:{{ "%.0f"|format(session.zone5_percent) }}% {% endif %}
+                        </td>
+                        <td>{{ session.energy_expenditure_kcal }} kcal</td>
+                        <td>{{ "%.1f"|format(session.training_load_score) }}</td>
+                        <td style="font-size: 0.85em;">{{ session.description or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="background: #e8f4f8; font-weight: bold;">
+                        <td colspan="5">Daily Total</td>
+                        <td>{{ sessions|sum(attribute='energy_expenditure_kcal') }} kcal</td>
+                        <td>{{ "%.1f"|format(sessions|sum(attribute='training_load_score')) }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+    
+    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 8px;">
+        <h3>Summary Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card" style="border-left-color: #3498db;">
+                <div class="stat-label">Total Sessions</div>
+                <div class="stat-value">{{ sessions_by_date|length * (sessions_by_date.values()|list|first|length if sessions_by_date else 0) }}</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #e74c3c;">
+                <div class="stat-label">Total Energy Burned</div>
+                <div class="stat-value">
+                    {% set total_energy = namespace(value=0) %}
+                    {% for sessions in sessions_by_date.values() %}
+                        {% for session in sessions %}
+                            {% set total_energy.value = total_energy.value + (session.energy_expenditure_kcal or 0) %}
+                        {% endfor %}
+                    {% endfor %}
+                    {{ total_energy.value }}
+                </div>
+                <div class="stat-label">kcal</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #f39c12;">
+                <div class="stat-label">Total Training Time</div>
+                <div class="stat-value">
+                    {% set total_time = namespace(value=0) %}
+                    {% for sessions in sessions_by_date.values() %}
+                        {% for session in sessions %}
+                            {% set total_time.value = total_time.value + (session.duration_minutes or 0) %}
+                        {% endfor %}
+                    {% endfor %}
+                    {{ (total_time.value / 60)|round(1) }}
+                </div>
+                <div class="stat-label">hours</div>
+            </div>
+        </div>
+    </div>
+    
+{% else %}
+    <p>No training sessions logged yet.</p>
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('main.log_training_multi') }}" class="btn">Log Your First Session</a>
+    </p>
+{% endif %}
+
+<p style="margin-top: 30px;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Dashboard</a>
+</p>
+
+{% endblock %}

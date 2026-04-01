@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Log Multiple Training Sessions{% endblock %}
+
+{% block content %}
+<h2>Log Training Day</h2>
+
+<form method="POST" action="{{ url_for('main.log_training_multi') }}" id="trainingForm">
+    <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" value="{{ today.strftime('%Y-%m-%d') }}" required>
+    </div>
+
+    <div id="sessions-container">
+        <!-- Session 1 (default) -->
+        <div class="session-card" data-session="1">
+            <h3>Session 1</h3>
+            
+            <div class="form-group">
+                <label>Sport</label>
+                <select name="sport_1" required onchange="togglePower(1)">
+                    <option value="swim">Swim 🏊‍♂️</option>
+                    <option value="bike">Bike 🚴‍♂️</option>
+                    <option value="run">Run 🏃‍♂️</option>
+                    <optgroup label="💪 Strength Training">
+                        <option value="strength_core">Core & Stability</option>
+                        <option value="strength_functional">Functional Strength</option>
+                        <option value="strength_power">Power & Plyometrics</option>
+                        <option value="strength_mobility">Mobility & Recovery</option>
+                        <option value="strength_heavy">Heavy Compound Lifts</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Session Type</label>
+                <select name="session_type_1" required>
+                    <option value="planned">Planned</option>
+                    <option value="actual">Actual (Completed)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" name="duration_1" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Zone Distribution (% of time in each zone)</label>
+                <small style="color: #666; display: block; margin-bottom: 10px;">Total should add up to 100%</small>
+                <div class="zone-inputs">
+                    <div class="zone-input">
+                        <label>Z1</label>
+                        <input type="number" name="zone1_1" min="0" max="100" value="0" step="1">
+                    </div>
+                    <div class="zone-input">
+                        <label>Z2</label>
+                        <input type="number" name="zone2_1" min="0" max="100" value="0" step="1">
+                    </div>
+                    <div class="zone-input">
+                        <label>Z3</label>
+                        <input type="number" name="zone3_1" min="0" max="100" value="0" step="1">
+                    </div>
+                    <div class="zone-input">
+                        <label>Z4</label>
+                        <input type="number" name="zone4_1" min="0" max="100" value="0" step="1">
+                    </div>
+                    <div class="zone-input">
+                        <label>Z5</label>
+                        <input type="number" name="zone5_1" min="0" max="100" value="0" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group power-group-1" style="display: none;">
+                <label>Average Power (watts) - Optional</label>
+                <input type="number" name="power_1" min="0">
+                <small style="color: #666;">If provided, will use power-based calculation (more accurate)</small>
+            </div>
+
+            <div class="form-group">
+                <label>Description (optional)</label>
+                <textarea name="description_1" rows="2" placeholder="e.g., 8x100m intervals @ CSS pace"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-secondary" onclick="addSession()" style="margin: 20px 0;">
+        + Add Another Session
+    </button>
+
+    <div style="margin-top: 20px;">
+        <button type="submit" class="btn">Calculate Nutrition for All Sessions</button>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary" style="margin-left: 10px;">Cancel</a>
+    </div>
+</form>
+
+<style>
+.session-card {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    border-left: 4px solid #e74c3c;
+    position: relative;
+}
+
+.remove-session-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.remove-session-btn:hover {
+    background: #c0392b;
+}
+</style>
+
+<script>
+let sessionCount = 1;
+
+function togglePower(sessionNum) {
+    const sport = document.querySelector(`select[name="sport_${sessionNum}"]`).value;
+    const powerGroup = document.querySelector(`.power-group-${sessionNum}`);
+    
+    if (sport === 'bike') {
+        powerGroup.style.display = 'block';
+    } else {
+        powerGroup.style.display = 'none';
+        const powerInput = document.querySelector(`input[name="power_${sessionNum}"]`);
+        if (powerInput) powerInput.value = '';
+    }
+}
+
+function addSession() {
+    sessionCount++;
+    
+    const container = document.getElementById('sessions-container');
+    const newSession = document.createElement('div');
+    newSession.className = 'session-card';
+    newSession.setAttribute('data-session', sessionCount);
+    newSession.innerHTML = `
+        <button type="button" class="remove-session-btn" onclick="removeSession(${sessionCount})">Remove</button>
+        <h3>Session ${sessionCount}</h3>
+        
+        <div class="form-group">
+            <label>Sport</label>
+            <select name="sport_${sessionCount}" required onchange="togglePower(${sessionCount})">
+                <option value="swim">Swim 🏊‍♂️</option>
+                <option value="bike">Bike 🚴‍♂️</option>
+                <option value="run">Run 🏃‍♂️</option>
+                <optgroup label="💪 Strength Training">
+                    <option value="strength_core">Core & Stability</option>
+                    <option value="strength_functional">Functional Strength</option>
+                    <option value="strength_power">Power & Plyometrics</option>
+                    <option value="strength_mobility">Mobility & Recovery</option>
+                    <option value="strength_heavy">Heavy Compound Lifts</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Session Type</label>
+            <select name="session_type_${sessionCount}" required>
+                <option value="planned">Planned</option>
+                <option value="actual">Actual (Completed)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Duration (minutes)</label>
+            <input type="number" name="duration_${sessionCount}" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label>Zone Distribution</label>
+            <div class="zone-inputs">
+                <div class="zone-input">
+                    <label>Z1</label>
+                    <input type="number" name="zone1_${sessionCount}" min="0" max="100" value="0" step="1">
+                </div>
+                <div class="zone-input">
+                    <label>Z2</label>
+                    <input type="number" name="zone2_${sessionCount}" min="0" max="100" value="0" step="1">
+                </div>
+                <div class="zone-input">
+                    <label>Z3</label>
+                    <input type="number" name="zone3_${sessionCount}" min="0" max="100" value="0" step="1">
+                </div>
+                <div class="zone-input">
+                    <label>Z4</label>
+                    <input type="number" name="zone4_${sessionCount}" min="0" max="100" value="0" step="1">
+                </div>
+                <div class="zone-input">
+                    <label>Z5</label>
+                    <input type="number" name="zone5_${sessionCount}" min="0" max="100" value="0" step="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group power-group-${sessionCount}" style="display: none;">
+            <label>Average Power (watts)</label>
+            <input type="number" name="power_${sessionCount}" min="0">
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="description_${sessionCount}" rows="2"></textarea>
+        </div>
+    `;
+    
+    container.appendChild(newSession);
+}
+
+function removeSession(sessionNum) {
+    const sessionCard = document.querySelector(`[data-session="${sessionNum}"]`);
+    sessionCard.remove();
+}
+</script>
+
+{% endblock %}

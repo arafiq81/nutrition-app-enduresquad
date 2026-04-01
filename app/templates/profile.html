@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - {{ user.name }}{% endblock %}
+
+{% block content %}
+<h2>Athlete Profile</h2>
+
+<h3>Basic Information</h3>
+<table>
+    <tr>
+        <th>Name</th>
+        <td>{{ user.name }}</td>
+    </tr>
+    <tr>
+        <th>Email</th>
+        <td>{{ user.email }}</td>
+    </tr>
+    <tr>
+        <th>Age</th>
+        <td>{{ user.age }} years</td>
+    </tr>
+    <tr>
+        <th>Sex</th>
+        <td>{{ user.sex|title }}</td>
+    </tr>
+    <tr>
+        <th>Weight</th>
+        <td>{{ user.weight_kg }} kg</td>
+    </tr>
+    <tr>
+        <th>Height</th>
+        <td>{{ user.height_cm }} cm</td>
+    </tr>
+    {% if user.body_fat_percentage %}
+    <tr>
+        <th>Body Fat %</th>
+        <td>{{ user.body_fat_percentage }}%</td>
+    </tr>
+    <tr>
+        <th>Lean Body Mass</th>
+        <td>{{ "%.1f"|format(user.lean_body_mass_kg) }} kg</td>
+    </tr>
+    {% endif %}
+</table>
+
+<h3>Training Profile</h3>
+<table>
+    <tr>
+        <th>Activity Level</th>
+        <td>{{ user.activity_level|replace('_', ' ')|title }}</td>
+    </tr>
+    <tr>
+        <th>Training Phase</th>
+        <td>{{ user.training_phase|title }}</td>
+    </tr>
+</table>
+
+{% if user.hr_max %}
+<h3>Heart Rate Zones</h3>
+<table>
+    <tr>
+        <th>HR Max</th>
+        <td>{{ user.hr_max }} bpm</td>
+    </tr>
+    <tr>
+        <th>Zone 1</th>
+        <td>&lt; {{ user.hr_zone1_max }} bpm</td>
+    </tr>
+    <tr>
+        <th>Zone 2</th>
+        <td>{{ user.hr_zone1_max }} - {{ user.hr_zone2_max }} bpm</td>
+    </tr>
+    <tr>
+        <th>Zone 3</th>
+        <td>{{ user.hr_zone2_max }} - {{ user.hr_zone3_max }} bpm</td>
+    </tr>
+    <tr>
+        <th>Zone 4</th>
+        <td>{{ user.hr_zone3_max }} - {{ user.hr_zone4_max }} bpm</td>
+    </tr>
+    <tr>
+        <th>Zone 5</th>
+        <td>&gt; {{ user.hr_zone4_max }} bpm</td>
+    </tr>
+</table>
+{% endif %}
+
+{% if user.ftp_watts %}
+<h3>Performance Metrics</h3>
+<table>
+    <tr>
+        <th>FTP (Cycling)</th>
+        <td>{{ user.ftp_watts }} watts</td>
+    </tr>
+</table>
+{% endif %}
+
+<p style="margin-top: 30px;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Dashboard</a>
+</p>
+
+{% endblock %}

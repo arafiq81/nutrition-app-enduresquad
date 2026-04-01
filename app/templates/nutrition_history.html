@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Nutrition History{% endblock %}
+
+{% block content %}
+<h2>Daily Nutrition History</h2>
+
+{% if daily_records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Total Energy</th>
+                <th>Carbs</th>
+                <th>Protein</th>
+                <th>Fat</th>
+                <th>Hydration</th>
+                <th>Training Load</th>
+                <th>Recalculated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in daily_records %}
+            <tr>
+                <td style="font-weight: 600;">
+                    <a href="{{ url_for('main.calculate_nutrition', date=record.date.strftime('%Y-%m-%d')) }}" 
+                       style="text-decoration: none; color: #3498db;">
+                        {{ record.date.strftime('%a, %b %d, %Y') }}
+                    </a>
+                </td>
+                <td>{{ record.total_tdee_kcal or 0 }} kcal</td>
+                <td>{{ "%.0f"|format(record.target_carbs_g or 0) }}g</td>
+                <td>{{ "%.0f"|format(record.target_protein_g or 0) }}g</td>
+                <td>{{ "%.0f"|format(record.target_fat_g or 0) }}g</td>
+                <td>{{ "%.1f"|format((record.target_fluids_ml or 0) / 1000) }}L</td>
+                <td>
+                    {{ "%.0f"|format(record.daily_training_load_score or 0) }}
+                    {% if record.daily_training_load_score %}
+                        {% if record.daily_training_load_score < 60 %}
+                            <span style="color: #95a5a6; font-size: 0.85em;">(Low)</span>
+                        {% elif record.daily_training_load_score < 120 %}
+                            <span style="color: #3498db; font-size: 0.85em;">(Moderate)</span>
+                        {% elif record.daily_training_load_score < 180 %}
+                            <span style="color: #f39c12; font-size: 0.85em;">(High)</span>
+                        {% else %}
+                            <span style="color: #e74c3c; font-size: 0.85em;">(Very High)</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td style="font-size: 0.85em;">{{ record.recalculated_count }}x</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px;">
+        <h3>Period Summary (Last {{ daily_records|length }} Days)</h3>
+        <div class="stats-grid">
+            <div class="stat-card" style="border-left-color: #27ae60;">
+                <div class="stat-label">Average Daily Energy</div>
+                <div class="stat-value">
+                    {% set total_tdee = namespace(value=0) %}
+                    {% for record in daily_records %}
+                        {% set total_tdee.value = total_tdee.value + (record.total_tdee_kcal or 0) %}
+                    {% endfor %}
+                    {{ (total_tdee.value / daily_records|length)|int }}
+                </div>
+                <div class="stat-label">kcal/day</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #f39c12;">
+                <div class="stat-label">Average Carbs</div>
+                <div class="stat-value">
+                    {% set total_carbs = namespace(value=0) %}
+                    {% for record in daily_records %}
+                        {% set total_carbs.value = total_carbs.value + (record.target_carbs_g or 0) %}
+                    {% endfor %}
+                    {{ (total_carbs.value / daily_records|length)|int }}
+                </div>
+                <div class="stat-label">g/day</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #3498db;">
+                <div class="stat-label">Average Protein</div>
+                <div class="stat-value">
+                    {% set total_protein = namespace(value=0) %}
+                    {% for record in daily_records %}
+                        {% set total_protein.value = total_protein.value + (record.target_protein_g or 0) %}
+                    {% endfor %}
+                    {{ (total_protein.value / daily_records|length)|int }}
+                </div>
+                <div class="stat-label">g/day</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #9b59b6;">
+                <div class="stat-label">Average Fat</div>
+                <div class="stat-value">
+                    {% set total_fat = namespace(value=0) %}
+                    {% for record in daily_records %}
+                        {% set total_fat.value = total_fat.value + (record.target_fat_g or 0) %}
+                    {% endfor %}
+                    {{ (total_fat.value / daily_records|length)|int }}
+                </div>
+                <div class="stat-label">g/day</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #1abc9c;">
+                <div class="stat-label">Average Hydration</div>
+                <div class="stat-value">
+                    {% set total_fluids = namespace(value=0) %}
+                    {% for record in daily_records %}
+                        {% set total_fluids.value = total_fluids.value + (record.target_fluids_ml or 0) %}
+                    {% endfor %}
+                    {{ ((total_fluids.value / daily_records|length) / 1000)|round(1) }}
+                </div>
+                <div class="stat-label">liters/day</div>
+            </div>
+            <div class="stat-card" style="border-left-color: #e67e22;">
+                <div class="stat-label">Average Training Load</div>
+                <div class="stat-value">
+                    {% set total_load = namespace(value=0) %}
+                    {% for record in daily_records %}
+                        {% set total_load.value = total_load.value + (record.daily_training_load_score or 0) %}
+                    {% endfor %}
+                    {{ (total_load.value / daily_records|length)|int }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% else %}
+    <p>No nutrition data calculated yet.</p>
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('main.log_training_multi') }}" class="btn">Log Training to Generate Nutrition Plan</a>
+    </p>
+{% endif %}
+
+<p style="margin-top: 30px;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Dashboard</a>
+</p>
+
+{% endblock %}

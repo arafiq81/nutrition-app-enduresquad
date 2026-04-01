@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Nutrition Plan - {{ calc_date.strftime('%Y-%m-%d') }}{% endblock %}
+
+{% block content %}
+<h2>Nutrition Plan for {{ calc_date.strftime('%A, %B %d, %Y') }}</h2>
+
+<h3>Training Summary</h3>
+{% if sessions %}
+<table>
+    <thead>
+        <tr>
+            <th>Sport</th>
+            <th>Duration</th>
+            <th>Zones</th>
+            <th>Energy</th>
+            <th>Load</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for session in sessions %}
+        <tr>
+            <td>{{ session.sport|title }}</td>
+            <td>{{ session.duration_minutes }} min</td>
+            <td>
+                {% if session.zone1_percent > 0 %}Z1: {{ "%.0f"|format(session.zone1_percent) }}% {% endif %}
+                {% if session.zone2_percent > 0 %}Z2: {{ "%.0f"|format(session.zone2_percent) }}% {% endif %}
+                {% if session.zone3_percent > 0 %}Z3: {{ "%.0f"|format(session.zone3_percent) }}% {% endif %}
+                {% if session.zone4_percent > 0 %}Z4: {{ "%.0f"|format(session.zone4_percent) }}% {% endif %}
+                {% if session.zone5_percent > 0 %}Z5: {{ "%.0f"|format(session.zone5_percent) }}% {% endif %}
+            </td>
+            <td>{{ session.energy_expenditure_kcal }} kcal</td>
+            <td>{{ "%.1f"|format(session.training_load_score) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No training sessions logged for this day.</p>
+{% endif %}
+
+<h3>Energy Breakdown</h3>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">RMR (Resting)</div>
+        <div class="stat-value">{{ rmr }}</div>
+        <div class="stat-label">kcal</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">NEAT (Activity)</div>
+        <div class="stat-value">{{ neat }}</div>
+        <div class="stat-label">kcal</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Training</div>
+        <div class="stat-value">{{ sessions|sum(attribute='energy_expenditure_kcal') or 0 }}</div>
+        <div class="stat-label">kcal</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #e74c3c;">
+        <div class="stat-label">TOTAL TDEE</div>
+        <div class="stat-value">{{ total_tdee }}</div>
+        <div class="stat-label">kcal/day</div>
+    </div>
+</div>
+
+<h3>Daily Macro Targets</h3>
+<div class="stats-grid">
+    <div class="stat-card" style="border-left-color: #f39c12;">
+        <div class="stat-label">Carbohydrates</div>
+        <div class="stat-value">{{ "%.0f"|format(macros.carbs_g) }}g</div>
+        <div class="stat-label">{{ "%.0f"|format(macros.carbs_g * 4) }} kcal ({{ "%.0f"|format((macros.carbs_g * 4 / total_tdee) * 100) }}%)</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #3498db;">
+        <div class="stat-label">Protein</div>
+        <div class="stat-value">{{ "%.0f"|format(macros.protein_g) }}g</div>
+        <div class="stat-label">{{ "%.0f"|format(macros.protein_g * 4) }} kcal ({{ "%.0f"|format((macros.protein_g * 4 / total_tdee) * 100) }}%)</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #9b59b6;">
+        <div class="stat-label">Fat</div>
+        <div class="stat-value">{{ "%.0f"|format(macros.fat_g) }}g</div>
+        <div class="stat-label">{{ "%.0f"|format(macros.fat_g * 9) }} kcal ({{ "%.0f"|format((macros.fat_g * 9 / total_tdee) * 100) }}%)</div>
+    </div>
+</div>
+
+<h3>Hydration</h3>
+<div class="stats-grid">
+    <div class="stat-card" style="border-left-color: #1abc9c;">
+        <div class="stat-label">Baseline (Non-Training)</div>
+        <div class="stat-value">{{ "%.1f"|format(hydration.baseline_ml / 1000) }}L</div>
+        <div class="stat-label">{{ hydration.baseline_ml }} ml</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #1abc9c;">
+        <div class="stat-label">Training + Recovery</div>
+        <div class="stat-value">{{ "%.1f"|format(hydration.training_ml / 1000) }}L</div>
+        <div class="stat-label">{{ hydration.training_ml }} ml</div>
+    </div>
+    <div class="stat-card" style="border-left-color: #16a085;">
+        <div class="stat-label">TOTAL DAILY</div>
+        <div class="stat-value">{{ "%.1f"|format(hydration.total_ml / 1000) }}L</div>
+        <div class="stat-label">{{ hydration.total_ml }} ml</div>
+    </div>
+</div>
+
+<h3>Training Load Assessment</h3>
+<div class="stat-card" style="max-width: 400px;">
+    <div class="stat-label">Total Training Load Score</div>
+    <div class="stat-value">{{ "%.1f"|format(training_load) }}</div>
+    <div class="stat-label">
+        {% if training_load < 60 %}
+            Low Demand Day (3-5 g/kg carbs)
+        {% elif training_load < 120 %}
+            Moderate Demand Day (5-7 g/kg carbs)
+        {% elif training_load < 180 %}
+            High Demand Day (7-10 g/kg carbs)
+        {% else %}
+            Very High Demand / Race Day (10-12 g/kg carbs)
+        {% endif %}
+    </div>
+</div>
+
+<p style="margin-top: 30px;">
+    <a href="{{ url_for('main.index') }}" class="btn">Back to Dashboard</a>
+    <a href="{{ url_for('main.log_training') }}" class="btn btn-secondary">Log Another Session</a>
+</p>
+
+{% endblock %}

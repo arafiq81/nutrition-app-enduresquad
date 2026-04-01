@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin{% endblock %}
+
+{% block content %}
+<h2>User Management (Admin)</h2>
+
+<h3 style="color: #e74c3c;">Pending Approval ({{ pending|length }})</h3>
+
+{% if pending %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Registered</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in pending %}
+            <tr>
+                <td>{{ u.name }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('main.admin_approve_user', user_id=u.id) }}" 
+                       class="btn" 
+                       style="background: #27ae60; padding: 5px 15px; font-size: 14px;"
+                       onclick="return confirm('Approve {{ u.name }}?')">
+                        ✓ Approve
+                    </a>
+                    <a href="{{ url_for('main.admin_reject_user', user_id=u.id) }}" 
+                       class="btn" 
+                       style="background: #e74c3c; padding: 5px 15px; font-size: 14px;"
+                       onclick="return confirm('Reject and delete {{ u.name }}?')">
+                        ✗ Reject
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No pending users.</p>
+{% endif %}
+
+<h3 style="color: #27ae60; margin-top: 40px;">Approved Users ({{ approved|length }})</h3>
+
+{% if approved %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Registered</th>
+                <th>Approved</th>
+                <th>Profile</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in approved %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.name }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ u.approved_at.strftime('%Y-%m-%d') if u.approved_at else '-' }}</td>
+                <td>{{ '✓ Complete' if u.profile_complete else '⚠ Incomplete' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+<p style="margin-top: 30px;">
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back to Dashboard</a>
+</p>
+
+{% endblock %}

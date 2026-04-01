@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+venv/
+.venv-local/
+env/
+ENV/
+.venv/
+.env/
+
+# Environment variables (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+
+# Database
+data/*.db
+data/*.db-shm
+data/*.db-wal
+instance/
+*.sqlite
+*.sqlite3
+
+# IDE / Editors
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Backup / temp files
+*.bkp
+*.broken
+*.backup
+*.orig
+*~
+app/163
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# User data exports (may contain PII)
+user_backup.json
+
+# pyinstaller
+*.manifest
+*.spec

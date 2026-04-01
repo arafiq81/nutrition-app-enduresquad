@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Ironman Nutrition Bot{% endblock %}
+
+{% block content %}
+<h2>Welcome, {{ user.name }}! 👋</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Weight</div>
+        <div class="stat-value">{{ user.weight_kg }}kg</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Training Phase</div>
+        <div class="stat-value">{{ user.training_phase|title }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Activity Level</div>
+        <div class="stat-value">{{ user.activity_level|replace('_', ' ')|title }}</div>
+    </div>
+    {% if user.body_fat_percentage %}
+    <div class="stat-card">
+        <div class="stat-label">Lean Mass</div>
+        <div class="stat-value">{{ "%.1f"|format(user.lean_body_mass_kg) }}kg</div>
+    </div>
+    {% endif %}
+</div>
+
+<h2>Today's Training - {{ today.strftime('%A, %B %d, %Y') }}</h2>
+
+{% if sessions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Sport</th>
+                <th>Type</th>
+                <th>Duration</th>
+                <th>Energy</th>
+                <th>Load Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.sport|title }}</td>
+                <td>{{ session.session_type|title }}</td>
+                <td>{{ session.duration_minutes }} min</td>
+                <td>{{ session.energy_expenditure_kcal }} kcal</td>
+                <td>{{ "%.1f"|format(session.training_load_score) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if daily_nutrition %}
+    <h2>Today's Nutrition Targets</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Energy</div>
+            <div class="stat-value">{{ daily_nutrition.total_tdee_kcal }}</div>
+            <div class="stat-label">kcal</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Carbohydrates</div>
+            <div class="stat-value">{{ "%.0f"|format(daily_nutrition.target_carbs_g) }}</div>
+            <div class="stat-label">grams</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Protein</div>
+            <div class="stat-value">{{ "%.0f"|format(daily_nutrition.target_protein_g) }}</div>
+            <div class="stat-label">grams</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Fat</div>
+            <div class="stat-value">{{ "%.0f"|format(daily_nutrition.target_fat_g) }}</div>
+            <div class="stat-label">grams</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Hydration</div>
+            <div class="stat-value">{{ "%.1f"|format(daily_nutrition.target_fluids_ml / 1000) }}</div>
+            <div class="stat-label">liters</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Training Load</div>
+            <div class="stat-value">{{ "%.0f"|format(daily_nutrition.daily_training_load_score) }}</div>
+            <div class="stat-label">
+                {% if daily_nutrition.daily_training_load_score < 60 %}
+                    Low
+                {% elif daily_nutrition.daily_training_load_score < 120 %}
+                    Moderate
+                {% elif daily_nutrition.daily_training_load_score < 180 %}
+                    High
+                {% else %}
+                    Very High
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <a href="{{ url_for('main.calculate_nutrition', date=today.strftime('%Y-%m-%d')) }}" class="btn btn-secondary">Recalculate Nutrition</a>
+    {% else %}
+    <p style="margin: 20px 0;">
+        <a href="{{ url_for('main.calculate_nutrition', date=today.strftime('%Y-%m-%d')) }}" class="btn">Calculate Today's Nutrition</a>
+    </p>
+    {% endif %}
+
+{% else %}
+    <p>No training sessions logged for today.</p>
+    <p style="margin-top: 20px;">
+        <a href="{{ url_for('main.log_training') }}" class="btn">Log Your First Session</a>
+    </p>
+{% endif %}
+
+{% endblock %}
