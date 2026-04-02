@@ -37,6 +37,15 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Supabase free tier allows ~100 connections total.
+    # Keep the pool small so multiple gunicorn workers don't exhaust it.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_size": 2,
+        "max_overflow": 3,
+        "pool_pre_ping": True,   # drops stale connections before use
+        "pool_recycle": 300,     # recycle connections every 5 minutes
+    }
+
     # Anthropic API
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
