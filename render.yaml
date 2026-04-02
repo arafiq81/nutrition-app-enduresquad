@@ -2,10 +2,11 @@ services:
   - type: web
     name: enduresquad-nutrition
     runtime: python3
-    # init_db.py uses db.create_all() — idempotent, never drops existing data.
-    # It runs on every deploy so new tables are always created automatically.
-    buildCommand: pip install -r requirements.txt && python init_db.py
-    startCommand: gunicorn run:app -c gunicorn_config.py
+    # DATABASE_URL is only available at runtime, not during build.
+    # init_db.py runs before gunicorn so tables exist before the first request.
+    # db.create_all() is idempotent — safe to run on every start, never drops data.
+    buildCommand: pip install -r requirements.txt
+    startCommand: python init_db.py && gunicorn run:app -c gunicorn_config.py
     envVars:
       - key: FLASK_ENV
         value: production
