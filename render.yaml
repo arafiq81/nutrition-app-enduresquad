@@ -2,8 +2,18 @@ services:
   - type: web
     name: enduresquad-nutrition
     runtime: python3
-    buildCommand: pip install -r requirements.txt
+    # init_db.py uses db.create_all() — idempotent, never drops existing data.
+    # It runs on every deploy so new tables are always created automatically.
+    buildCommand: pip install -r requirements.txt && python init_db.py
     startCommand: gunicorn run:app -c gunicorn_config.py
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: enduresquad-nutrition-db
+          property: connectionString
+
+databases:
+  - name: enduresquad-nutrition-db
+    plan: free
