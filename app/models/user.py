@@ -8,11 +8,17 @@ class User(UserMixin, db.Model):
     User profile - stores athlete's basic information and preferences.
     Now includes authentication fields.
     """
-    __tablename__ = 'users'
+    # Separate table from the training app's 'users' table (same Supabase DB).
+    # Linked to the training app user via training_user_id (UUID).
+    __tablename__ = 'nutrition_users'
     
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
+    # Link to training app's users.id (UUID) — used to query completed_sets
+    # for daily training load → calorie calculations.
+    training_user_id = db.Column(db.String(36), nullable=True, index=True)
+
     # Authentication
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)

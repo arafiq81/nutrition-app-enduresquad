@@ -8,7 +8,7 @@ class DailyNutrition(db.Model):
     __table_args__ = (UniqueConstraint('user_id', 'date', name='uq_daily_nutrition_user_date'),)
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('nutrition_users.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
