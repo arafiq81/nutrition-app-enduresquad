@@ -25,3 +25,28 @@ with app.app_context():
     except Exception as exc:
         print(f"✗ Database initialisation failed: {exc}", file=sys.stderr)
         sys.exit(1)
+
+    # Seed admin user on first deploy only.
+    # Reads credentials from env vars — never hardcoded.
+    # Skipped entirely if ADMIN_EMAIL is not set or admin already exists.
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+
+    if admin_email and admin_password:
+        from app.models import User
+        if not User.query.filter_by(email=admin_email).first():
+            if len(admin_password) < 12:
+                print("✗ ADMIN_PASSWORD must be at least 12 characters — skipping admin seed", file=sys.stderr)
+            else:
+                admin = User(
+                    name="Admin",
+                    email=admin_email,
+                    profile_complete=False,
+                    approved=True,   # admin is pre-approved
+                )
+                admin.set_password(admin_password)
+                db.session.add(admin)
+                db.session.commit()
+                print(f"✓ Admin user created: {admin_email} (id={admin.id})")
+        else:
+            print(f"✓ Admin user already exists: {admin_email} — skipped")
