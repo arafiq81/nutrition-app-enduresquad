@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Training Session{% endblock %}
+
+{% block content %}
+<h2>Edit Training Session</h2>
+
+<form method="POST" action="{{ url_for('main.edit_training', session_id=session.id) }}">
+    <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" value="{{ session.date.strftime('%Y-%m-%d') }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="sport">Sport</label>
+        <select id="sport" name="sport" required onchange="togglePowerInput()">
+            <option value="swim" {% if session.sport == 'swim' %}selected{% endif %}>Swim 🏊‍♂️</option>
+            <option value="bike" {% if session.sport == 'bike' %}selected{% endif %}>Bike 🚴‍♂️</option>
+            <option value="run" {% if session.sport == 'run' %}selected{% endif %}>Run 🏃‍♂️</option>
+            <optgroup label="💪 Strength Training">
+                <option value="strength_core" {% if session.sport == 'strength_core' %}selected{% endif %}>Core & Stability</option>
+                <option value="strength_functional" {% if session.sport == 'strength_functional' %}selected{% endif %}>Functional Strength</option>
+                <option value="strength_power" {% if session.sport == 'strength_power' %}selected{% endif %}>Power & Plyometrics</option>
+                <option value="strength_mobility" {% if session.sport == 'strength_mobility' %}selected{% endif %}>Mobility & Recovery</option>
+                <option value="strength_heavy" {% if session.sport == 'strength_heavy' %}selected{% endif %}>Heavy Compound Lifts</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="session_type">Session Type</label>
+        <select id="session_type" name="session_type" required>
+            <option value="planned" {% if session.session_type == 'planned' %}selected{% endif %}>Planned</option>
+            <option value="actual" {% if session.session_type == 'actual' %}selected{% endif %}>Actual (Completed)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="duration">Duration (minutes)</label>
+        <input type="number" id="duration" name="duration" min="1" value="{{ session.duration_minutes }}" required>
+    </div>
+
+    <div class="form-group">
+        <label>Zone Distribution (% of time in each zone)</label>
+        <small style="color: #666; display: block; margin-bottom: 10px;">Total should add up to 100%</small>
+        <div class="zone-inputs">
+            <div class="zone-input">
+                <label for="zone1">Z1</label>
+                <input type="number" id="zone1" name="zone1" min="0" max="100" value="{{ session.zone1_percent|int }}" step="1">
+            </div>
+            <div class="zone-input">
+                <label for="zone2">Z2</label>
+                <input type="number" id="zone2" name="zone2" min="0" max="100" value="{{ session.zone2_percent|int }}" step="1">
+            </div>
+            <div class="zone-input">
+                <label for="zone3">Z3</label>
+                <input type="number" id="zone3" name="zone3" min="0" max="100" value="{{ session.zone3_percent|int }}" step="1">
+            </div>
+            <div class="zone-input">
+                <label for="zone4">Z4</label>
+                <input type="number" id="zone4" name="zone4" min="0" max="100" value="{{ session.zone4_percent|int }}" step="1">
+            </div>
+            <div class="zone-input">
+                <label for="zone5">Z5</label>
+                <input type="number" id="zone5" name="zone5" min="0" max="100" value="{{ session.zone5_percent|int }}" step="1">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group" id="power-group" style="display: none;">
+        <label for="power">Average Power (watts) - Optional</label>
+        <input type="number" id="power" name="power" min="0" value="{{ session.average_power_watts or '' }}">
+        <small style="color: #666;">If provided, will use power-based calculation (more accurate)</small>
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description (optional)</label>
+        <textarea id="description" name="description" rows="3" placeholder="e.g., 8x100m intervals @ CSS pace">{{ session.description or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn">Save Changes</button>
+    <a href="{{ url_for('main.training_history') }}" class="btn btn-secondary" style="margin-left: 10px;">Cancel</a>
+</form>
+
+<script>
+function togglePowerInput() {
+    const sport = document.getElementById('sport').value;
+    const powerGroup = document.getElementById('power-group');
+
+    if (sport === 'bike') {
+        powerGroup.style.display = 'block';
+    } else {
+        powerGroup.style.display = 'none';
+        document.getElementById('power').value = '';
+    }
+}
+
+// Initialize on page load
+togglePowerInput();
+</script>
+
+{% endblock %}

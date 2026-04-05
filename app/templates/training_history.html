@@ -21,6 +21,7 @@
                         <th>Energy</th>
                         <th>Load</th>
                         <th>Description</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -40,12 +41,17 @@
                         <td>{{ session.energy_expenditure_kcal }} kcal</td>
                         <td>{{ "%.1f"|format(session.training_load_score) }}</td>
                         <td style="font-size: 0.85em;">{{ session.description or '-' }}</td>
+                        <td style="white-space: nowrap;">
+                            <a href="{{ url_for('main.edit_training', session_id=session.id) }}" style="color: #3498db; font-size: 0.85em; text-decoration: none; margin-right: 8px;">✏️ Edit</a>
+                            <a href="{{ url_for('main.delete_training', session_id=session.id) }}" style="color: #e74c3c; font-size: 0.85em; text-decoration: none;" onclick="return confirm('Delete this session?')">🗑️ Delete</a>
+                        </td>
                     </tr>
                     {% endfor %}
                     <tr style="background: #e8f4f8; font-weight: bold;">
                         <td colspan="5">Daily Total</td>
                         <td>{{ sessions|sum(attribute='energy_expenditure_kcal') }} kcal</td>
                         <td>{{ "%.1f"|format(sessions|sum(attribute='training_load_score')) }}</td>
+                        <td></td>
                         <td></td>
                     </tr>
                 </tbody>

@@ -338,6 +338,101 @@ def nutrition_history():
     return render_template('nutrition_history.html', daily_records=daily_records, user=user)
 
 
+@bp.route('/training/edit/<int:session_id>', methods=['GET', 'POST'])
+@login_required
+def edit_training(session_id):
+    """Edit an existing training session"""
+    session = TrainingSession.query.get_or_404(session_id)
+
+    if session.user_id != current_user.id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.training_history'))
+
+    if request.method == 'POST':
+        session.date = datetime.strptime(request.form['date'], '%Y-%m-%d').date()
+        session.sport = request.form['sport']
+        session.session_type = request.form['session_type']
+        session.duration_minutes = int(request.form['duration'])
+        session.zone1_percent = float(request.form.get('zone1', 0))
+        session.zone2_percent = float(request.form.get('zone2', 0))
+        session.zone3_percent = float(request.form.get('zone3', 0))
+        session.zone4_percent = float(request.form.get('zone4', 0))
+        session.zone5_percent = float(request.form.get('zone5', 0))
+
+        power = request.form.get('power')
+        session.average_power_watts = int(power) if power else None
+        session.description = request.form.get('description', '')
+
+        calc = NutritionCalculator(current_user)
+        zone_dist = {1: session.zone1_percent, 2: session.zone2_percent, 3: session.zone3_percent,
+                     4: session.zone4_percent, 5: session.zone5_percent}
+        energy, load = calc.calculate_training_energy(sport=session.sport, duration_minutes=session.duration_minutes,
+                                                       zone_distribution=zone_dist, average_power_watts=session.average_power_watts)
+        session.energy_expenditure_kcal = energy
+        session.training_load_score = load
+
+        db.session.commit()
+
+        flash('Training session updated!', 'success')
+        return redirect(url_for('main.calculate_nutrition', date=session.date.strftime('%Y-%m-%d')))
+
+    return render_template('edit_training.html', session=session, user=current_user)
+
+
+@bp.route('/training/delete/<int:session_id>')
+@login_required
+def delete_training(session_id):
+    """Delete a training session"""
+    session = TrainingSession.query.get_or_404(session_id)
+
+    if session.user_id != current_user.id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.training_history'))
+
+    session_date = session.date
+    db.session.delete(session)
+    db.session.commit()
+
+    # Recalculate daily nutrition for that date
+    remaining_sessions = TrainingSession.query.filter_by(user_id=current_user.id, date=session_date).all()
+    calc = NutritionCalculator(current_user)
+
+    rmr = calc.calculate_rmr()
+    neat = calc.calculate_neat(rmr)
+    baseline = rmr + neat
+
+    total_training_energy = sum(s.energy_expenditure_kcal or 0 for s in remaining_sessions)
+    total_training_load = sum(s.training_load_score or 0 for s in remaining_sessions)
+
+    tdee_before_tef = baseline + total_training_energy
+    tef = calc.calculate_tef(tdee_before_tef)
+    total_tdee = baseline + total_training_energy + tef
+
+    macros = calc.calculate_daily_macros(total_training_load, total_tdee)
+
+    training_data = []
+    for s in remaining_sessions:
+        zone_dist = {1: s.zone1_percent, 2: s.zone2_percent, 3: s.zone3_percent, 4: s.zone4_percent, 5: s.zone5_percent}
+        training_data.append({'sport': s.sport, 'duration_minutes': s.duration_minutes, 'zone_distribution': zone_dist})
+
+    hydration = calc.calculate_hydration_needs(training_data)
+
+    daily = DailyNutrition.query.filter_by(user_id=current_user.id, date=session_date).first()
+    if daily:
+        daily.training_kcal = total_training_energy
+        daily.tef_kcal = tef
+        daily.total_tdee_kcal = total_tdee
+        daily.target_carbs_g = macros['carbs_g']
+        daily.target_protein_g = macros['protein_g']
+        daily.target_fat_g = macros['fat_g']
+        daily.target_fluids_ml = hydration['total_ml']
+        daily.daily_training_load_score = total_training_load
+        db.session.commit()
+
+    flash('Training session deleted.', 'success')
+    return redirect(url_for('main.training_history'))
+
+
 @bp.route('/admin/pending-users')
 @login_required
 def admin_pending_users():
