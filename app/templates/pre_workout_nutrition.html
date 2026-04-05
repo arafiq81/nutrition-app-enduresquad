@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Pre-Workout Nutrition{% endblock %}
+
+{% block content %}
+<h2>Pre-Workout Fueling Plan</h2>
+
+<!-- Session Summary -->
+<div style="background: #eaf4fb; border-left: 4px solid #3498db; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
+    <strong>{{ session.sport|title }}</strong> &mdash;
+    {{ session.session_type|title }} &mdash;
+    {{ session.duration_minutes }} min &mdash;
+    {{ session.date.strftime('%A, %B %d') }}
+    {% if session.description %}
+    <div style="margin-top: 6px; color: #555; font-size: 0.9em;">{{ session.description }}</div>
+    {% endif %}
+    <div style="margin-top: 8px; font-size: 0.85em; color: #2c3e50;">
+        Average intensity zone: <strong>{{ pre_workout.avg_zone }}</strong>
+        {% if pre_workout.avg_zone < 3 %}&nbsp;(Low)
+        {% elif pre_workout.avg_zone <= 4 %}&nbsp;(Moderate)
+        {% else %}&nbsp;(High)
+        {% endif %}
+    </div>
+</div>
+
+{% if pre_workout.avg_zone > 4 %}
+<div style="background: #fdf3cd; border-left: 4px solid #f39c12; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px; font-size: 0.9em;">
+    ⚠️ <strong>High intensity session:</strong> Avoid high-fibre foods, large amounts of fat, or unfamiliar foods in the 2 hours before this workout. Stick to easily digestible carbohydrates.
+</div>
+{% endif %}
+
+<!-- 2-3 Hours Before -->
+<div style="background: #fff; border: 1px solid #dce3ea; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0; color: #2c3e50;">2–3 Hours Before</h3>
+    <div style="font-size: 2em; font-weight: bold; color: #3498db; margin: 8px 0;">
+        {{ pre_workout.carbs_2_3_hours_before_g }}g carbs
+    </div>
+    <div style="color: #555; margin-bottom: 14px;">
+        Hydration: <strong>{{ pre_workout.hydration_2_3_hours_before_ml }} ml</strong>
+        ({{ "%.1f"|format(pre_workout.hydration_2_3_hours_before_ml / 1000) }}L)
+    </div>
+    <div style="font-size: 0.9em; color: #444;">
+        <strong>Food examples:</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8;">
+            {% set c = pre_workout.carbs_2_3_hours_before_g %}
+            {% if c <= 60 %}
+            <li>1 medium banana (27g) + 40g rolled oats (28g) with water</li>
+            <li>2 slices white toast with honey</li>
+            <li>200g cooked white rice</li>
+            {% elif c <= 100 %}
+            <li>1 large banana (30g) + 70g rolled oats (49g) + 200ml low-fat milk</li>
+            <li>2 slices white toast + 1 tbsp jam + 1 medium banana</li>
+            <li>300g cooked white rice + small amount of lean protein</li>
+            {% elif c <= 150 %}
+            <li>100g rolled oats + 1 large banana + 250ml sports drink</li>
+            <li>Large bowl of white rice (400g cooked) + low-fat yoghurt</li>
+            <li>3 slices white toast + jam + 1 banana + 300ml OJ</li>
+            {% else %}
+            <li>150g oats + 2 bananas + 300ml sports drink</li>
+            <li>Large white rice bowl (500g cooked) + banana + 250ml OJ</li>
+            <li>4 slices white toast + honey + 2 bananas + 500ml sports drink</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<!-- 30-60 Minutes Before -->
+<div style="background: #fff; border: 1px solid #dce3ea; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0; color: #2c3e50;">30–60 Minutes Before</h3>
+    <div style="font-size: 2em; font-weight: bold; color: #e67e22; margin: 8px 0;">
+        {{ pre_workout.carbs_30_60_min_before_g }}g carbs
+    </div>
+    <div style="color: #555; margin-bottom: 14px;">
+        Hydration: <strong>{{ pre_workout.hydration_30_min_before_ml }} ml</strong>
+        ({{ "%.1f"|format(pre_workout.hydration_30_min_before_ml / 1000) }}L)
+    </div>
+    <div style="font-size: 0.9em; color: #444;">
+        <strong>Food examples:</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8;">
+            {% set c = pre_workout.carbs_30_60_min_before_g %}
+            {% if c <= 40 %}
+            <li>1 small banana (~20g) or 1 medjool date (~18g)</li>
+            <li>1 rice cake with jam</li>
+            <li>½ energy bar (check label)</li>
+            {% elif c <= 65 %}
+            <li>1 large banana + 1 medjool date</li>
+            <li>500ml isotonic sports drink</li>
+            <li>1 energy gel (22g) + 1 small banana</li>
+            {% else %}
+            <li>2 bananas or 2 energy gels + 500ml sports drink</li>
+            <li>1 energy bar (~45g carbs) + 1 banana</li>
+            <li>750ml isotonic sports drink + 1 energy gel</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+<!-- During Workout -->
+{% if pre_workout.during_workout_carbs_per_hour_g %}
+<div style="background: #fff; border: 1px solid #dce3ea; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0; color: #2c3e50;">During Workout</h3>
+    <div style="font-size: 2em; font-weight: bold; color: #27ae60; margin: 8px 0;">
+        {{ pre_workout.during_workout_carbs_per_hour_g }}–60g carbs/hour
+    </div>
+    <div style="color: #555; margin-bottom: 14px;">
+        Fluid: <strong>500–750 ml per hour</strong> depending on conditions
+    </div>
+    <div style="font-size: 0.9em; color: #444;">
+        <strong>Options per hour:</strong>
+        <ul style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.8;">
+            <li>2 energy gels (44g carbs) + 500ml water</li>
+            <li>750ml isotonic sports drink (~38g carbs)</li>
+            <li>1 energy gel + 500ml sports drink</li>
+            <li>2 medjool dates (36g carbs) + 500ml water</li>
+        </ul>
+        <p style="margin-top: 10px; color: #666;">Start fuelling within the first 20–30 minutes — don't wait until you feel depleted.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Pre-Hydration Summary -->
+<div style="background: #eafaf1; border: 1px solid #a9dfbf; border-radius: 10px; padding: 20px; margin-bottom: 24px;">
+    <h3 style="margin-top: 0; color: #1a6035;">Pre-Hydration Summary</h3>
+    <table style="width: 100%; font-size: 0.95em;">
+        <tr>
+            <td style="padding: 6px 0;">2–3 hours before</td>
+            <td style="font-weight: bold; text-align: right;">{{ pre_workout.hydration_2_3_hours_before_ml }} ml</td>
+        </tr>
+        <tr>
+            <td style="padding: 6px 0;">15–30 min before</td>
+            <td style="font-weight: bold; text-align: right;">{{ pre_workout.hydration_30_min_before_ml }} ml</td>
+        </tr>
+        <tr style="border-top: 1px solid #a9dfbf;">
+            <td style="padding: 8px 0; font-weight: bold;">Total pre-session</td>
+            <td style="font-weight: bold; text-align: right;">
+                {{ pre_workout.hydration_2_3_hours_before_ml + pre_workout.hydration_30_min_before_ml }} ml
+            </td>
+        </tr>
+    </table>
+    <p style="margin: 10px 0 0 0; font-size: 0.85em; color: #555;">Urine should be pale yellow before you start. If it's dark, drink more.</p>
+</div>
+
+<p>
+    <a href="{{ url_for('main.training_history') }}" class="btn btn-secondary">Back to Training History</a>
+</p>
+{% endblock %}

@@ -37,6 +37,7 @@
                 <th>Duration</th>
                 <th>Energy</th>
                 <th>Load Score</th>
+                <th>Fueling</th>
             </tr>
         </thead>
         <tbody>
@@ -47,6 +48,11 @@
                 <td>{{ session.duration_minutes }} min</td>
                 <td>{{ session.energy_expenditure_kcal }} kcal</td>
                 <td>{{ "%.1f"|format(session.training_load_score) }}</td>
+                <td>
+                    {% if session.session_type == 'planned' %}
+                    <a href="{{ url_for('main.pre_workout_nutrition', session_id=session.id) }}" style="color: #27ae60; font-weight: bold; font-size: 0.9em; text-decoration: none;">🍽️ Pre-Workout Fuel</a>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

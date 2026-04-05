@@ -338,6 +338,29 @@ def nutrition_history():
     return render_template('nutrition_history.html', daily_records=daily_records, user=user)
 
 
+@bp.route('/nutrition/pre-workout/<int:session_id>')
+@login_required
+def pre_workout_nutrition(session_id):
+    """Show pre-workout fueling recommendations for a planned session"""
+    session = TrainingSession.query.get_or_404(session_id)
+
+    if session.user_id != current_user.id:
+        flash('Access denied', 'error')
+        return redirect(url_for('main.training_history'))
+
+    calc = NutritionCalculator(current_user)
+    zone_dist = {
+        1: session.zone1_percent,
+        2: session.zone2_percent,
+        3: session.zone3_percent,
+        4: session.zone4_percent,
+        5: session.zone5_percent,
+    }
+    pre_workout = calc.calculate_pre_workout_nutrition(session.duration_minutes, zone_dist)
+
+    return render_template('pre_workout_nutrition.html', session=session, pre_workout=pre_workout, user=current_user)
+
+
 @bp.route('/training/edit/<int:session_id>', methods=['GET', 'POST'])
 @login_required
 def edit_training(session_id):

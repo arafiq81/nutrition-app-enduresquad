@@ -407,3 +407,63 @@ class NutritionCalculator:
             'training_ml': training_ml,
             'total_ml': baseline_ml + training_ml
         }
+
+    def calculate_pre_workout_nutrition(
+        self,
+        duration_minutes: int,
+        zone_distribution: Dict[int, float]
+    ) -> Dict:
+        """
+        Calculate pre-workout fueling needs based on session duration and intensity.
+
+        Returns:
+            Dict with carbs_2_3_hours_before_g, carbs_30_60_min_before_g,
+            hydration_2_3_hours_before_ml, hydration_30_min_before_ml,
+            avg_zone, during_workout_carbs_per_hour_g (if applicable)
+        """
+        weight = self.user.weight_kg
+
+        # Weighted average zone from distribution
+        total_pct = sum(zone_distribution.values())
+        if total_pct > 0:
+            avg_zone = sum(z * pct for z, pct in zone_distribution.items()) / total_pct
+        else:
+            avg_zone = 2.0
+
+        # Carbs 2-3 hours before based on duration
+        if duration_minutes < 60:
+            carbs_per_kg_early = 1.0
+        elif duration_minutes < 90:
+            carbs_per_kg_early = 1.5
+        elif duration_minutes < 120:
+            carbs_per_kg_early = 2.0
+        else:
+            carbs_per_kg_early = 2.5
+
+        carbs_2_3_hours_before_g = round(weight * carbs_per_kg_early)
+
+        # Carbs 30-60 min before based on intensity
+        if avg_zone < 3:
+            carbs_per_kg_late = 0.5
+        elif avg_zone <= 4:
+            carbs_per_kg_late = 0.75
+        else:
+            carbs_per_kg_late = 1.0
+
+        carbs_30_60_min_before_g = round(weight * carbs_per_kg_late)
+
+        # Pre-hydration
+        hydration_2_3_hours_before_ml = round(weight * 6)   # 5-7 ml/kg midpoint
+        hydration_30_min_before_ml = round(weight * 4)      # 3-5 ml/kg midpoint
+
+        # During workout guidance for sessions > 90 min
+        during_workout_carbs_per_hour_g = 45 if duration_minutes > 90 else None
+
+        return {
+            'carbs_2_3_hours_before_g': carbs_2_3_hours_before_g,
+            'carbs_30_60_min_before_g': carbs_30_60_min_before_g,
+            'hydration_2_3_hours_before_ml': hydration_2_3_hours_before_ml,
+            'hydration_30_min_before_ml': hydration_30_min_before_ml,
+            'avg_zone': round(avg_zone, 1),
+            'during_workout_carbs_per_hour_g': during_workout_carbs_per_hour_g,
+        }
